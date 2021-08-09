@@ -1,0 +1,63 @@
+// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel ImageKernel
+
+// Create a RenderTexture with enableRandomWrite flag and set it
+// with cs.SetTexture
+RWTexture2D<float4> ResultTexture;
+
+// Agent Data
+struct PixelAgentsDataStruct
+{
+    int2 agentPosition;
+    float4 agentColor;
+
+    int2 agentDestCoord;
+    int agentSpeed;
+    
+};
+
+uint onMove;
+
+RWStructuredBuffer<PixelAgentsDataStruct> pixelMoveBuffer;
+
+[numthreads(8,1,1)]
+void ImageKernel(uint3 id : SV_DispatchThreadID)
+{
+
+    float4 pixelColor = pixelMoveBuffer[id.x].agentColor;
+    float4 backgroundColor = { 25.0f / 255.0f, 35.0f / 255.0f, 51.0f / 255.0f, 255.0f / 255.0f };
+    uint agentSpeed = pixelMoveBuffer[id.x].agentSpeed;
+
+    uint2 currentPixelPosition = uint2(pixelMoveBuffer[id.x].agentPosition.x, pixelMoveBuffer[id.x].agentPosition.y);
+
+    int xDist = pixelMoveBuffer[id.x].agentDestCoord.x - pixelMoveBuffer[id.x].agentPosition.x;
+    int yDist = pixelMoveBuffer[id.x].agentDestCoord.y - pixelMoveBuffer[id.x].agentPosition.y;
+    float sqrtBtm = sqrt(xDist * xDist + yDist * yDist);
+
+    //uint2 newPixelPosition = uint2(currentPixelPosition.x + round(((100.0f * xDist) / (abs(xDist) + abs(yDist))) / 100.0f) * agentSpeed, currentPixelPosition.y + round(((100.0f * yDist) / (abs(xDist) + abs(yDist))) / 100.0f) * agentSpeed);
+    uint2 newPixelPosition = uint2(pixelMoveBuffer[id.x].agentPosition.x + round((xDist / abs(sqrtBtm)) * agentSpeed), pixelMoveBuffer[id.x].agentPosition.y + round((yDist / abs(sqrtBtm)) * agentSpeed));
+
+    // Quick fix for the edge problem when dividing it becomes 0, here i just make it stay at the mouse position
+    if ((xDist == 0) && (yDist == 0))
+    {
+        //newPixelPosition = pixelMoveBuffer[id.x].agentDestCoord;
+    }
+
+
+    if (onMove == 1)
+    {
+        ResultTexture[newPixelPosition.xy] = pixelColor;
+        //ResultTexture[currentPixelPosition.xy] = backgroundColor;
+        pixelMoveBuffer[id.x].agentPosition = newPixelPosition;
+    }
+    else if (onMove == 0)
+    {
+        ResultTexture[currentPixelPosition.xy] = pixelColor;
+    }
+    else
+    {
+        ResultTexture[currentPixelPosition.xy] = backgroundColor;
+    }
+
+    
+}

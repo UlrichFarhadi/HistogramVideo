@@ -1,0 +1,17 @@
+// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel ClearImageKernel
+
+
+RWTexture2D<float4> ResultTexture;
+
+
+
+[numthreads(8, 8, 1)]
+void ClearImageKernel(uint3 id : SV_DispatchThreadID)
+{
+
+    float4 backgroundColor = { 25.0f / 255.0f, 35.0f / 255.0f, 51.0f / 255.0f, 255.0f / 255.0f };
+
+    ResultTexture[id.xy] = backgroundColor;
+
+}
