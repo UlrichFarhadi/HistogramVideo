@@ -10,7 +10,7 @@ RWTexture2D<float4> ResultTexture;
 void ClearImageKernel(uint3 id : SV_DispatchThreadID)
 {
 
-    float4 backgroundColor = { 25.0f / 255.0f, 35.0f / 255.0f, 51.0f / 255.0f, 255.0f / 255.0f };
+    float4 backgroundColor = { 25.0f / 255.0f, 35.0f / 255.0f, 51.0f / 255.0f, 0.0f }; // Making the other pixels transparent
 
     ResultTexture[id.xy] = backgroundColor;
 

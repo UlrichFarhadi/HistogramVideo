@@ -19,7 +19,7 @@ public class ImageController : MonoBehaviour
 
     public ComputeShader clearImageShader;
 
-    // Data for the PixelAgents Compute Buffer'
+    // Data for the PixelAgents Compute Buffer
     public float pixelSpeed;
     struct PixelAgentsDataStruct
     {
@@ -34,7 +34,10 @@ public class ImageController : MonoBehaviour
     PixelAgentsDataStruct[] agents;
     int numAgents;
 
-
+    // Histogram stuff
+    public GameObject[] binObjects;
+    public GameObject selector;
+    public int numBins = 256;
 
     // Start is called before the first frame update
     void Start()
@@ -55,7 +58,15 @@ public class ImageController : MonoBehaviour
         InitializeAgents(0, 0, imageColorArray.GetLength(0), imageColorArray.GetLength(1), ref imageColorArray, "rgb");
         PrintImageWithShader("ImageKernel", ref pixelMoveShader, ref pixelMoveBuffer, ref agents, "pixelMoveBuffer", "ResultTexture", ref renderTexture, ref image, 0);
 
-
+        // Initializing the histogram stuff
+        binObjects = new GameObject[numBins];
+        float histStartCoord = -700.0f;
+        for (int i = 0; i < numBins; i++)
+        {
+            GameObject go = (GameObject)Instantiate(selector, new Vector3((float)histStartCoord + i * 5.5f, 0.0f, 0.0f), Quaternion.identity);
+            go.transform.localScale = new Vector3(5.5f, 5.5f, 5.5f); // Set y (eller er det z) tykkelsen til at være 0.0 da den skal ændres med histogrammet vokser
+            binObjects[i] = go;
+        }
 
 
         /*
@@ -74,13 +85,14 @@ public class ImageController : MonoBehaviour
         */
 
         //StartCoroutine(GenerateGrid());
-        Application.targetFrameRate = 144;
+        Application.targetFrameRate = 60;
         
     }
 
     // Update is called once per frame
     void Update()
     {
+        
         //PrintImageWithShader("ImageKernel", ref pixelMoveShader, ref pixelMoveBuffer, ref agents, "pixelMoveBuffer", "ResultTexture", ref renderTexture, ref image, 3);
         ClearImageWithShader("ClearImageKernel", ref clearImageShader, "ResultTexture", ref renderTexture, ref image);
         PrintImageWithShader("ImageKernel", ref pixelMoveShader, ref pixelMoveBuffer, ref agents, "pixelMoveBuffer", "ResultTexture", ref renderTexture, ref image, 1);
@@ -90,7 +102,7 @@ public class ImageController : MonoBehaviour
         {
             agents[i].agentDestCoord.x = (int)mousePos.x;
             agents[i].agentDestCoord.y = (int)mousePos.y;
-            agents[i].agentSpeed = UnityEngine.Random.Range(6, 10);
+            agents[i].agentSpeed = UnityEngine.Random.Range(1, 4);
 
 
             // This if statement below makes the pixels spawn at random locations if they get stuck in the center
@@ -100,6 +112,8 @@ public class ImageController : MonoBehaviour
                 agents[i].agentPosition.y = UnityEngine.Random.Range(0, Screen.height);
             }
         }
+        //Debug.Log(mousePos.x);
+        //Debug.Log(mousePos.y);
 
         if (Input.GetKeyDown("a")) // GetKeyDown will only return true after a press, when user has released it and presses it down again
         {
@@ -109,6 +123,7 @@ public class ImageController : MonoBehaviour
                 agents[i].agentPosition.y = UnityEngine.Random.Range(0, Screen.height);
             }
         }
+        
     }
 
 

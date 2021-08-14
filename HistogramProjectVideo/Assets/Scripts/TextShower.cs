@@ -24,9 +24,13 @@ public class TextShower : MonoBehaviour
     void Update()
     {
 
-        textR.color = new Color(sliderR.value/255.0f, 0.0f, 0.0f, 1.0f);
-        textG.color = new Color(0.0f, sliderG.value / 255.0f, 0.0f, 1.0f);
-        textB.color = new Color(0.0f, 0.0f, sliderB.value / 255.0f, 1.0f);
+        //textR.color = new Color(sliderR.value/255.0f, 0.0f, 0.0f, 1.0f);
+        //textG.color = new Color(0.0f, sliderG.value / 255.0f, 0.0f, 1.0f);
+        //textB.color = new Color(0.0f, 0.0f, sliderB.value / 255.0f, 1.0f);
+
+        textR.text = ((int)sliderR.value).ToString();
+        textG.text = ((int)sliderG.value).ToString();
+        textB.text = ((int)sliderB.value).ToString();
 
     }
 }
