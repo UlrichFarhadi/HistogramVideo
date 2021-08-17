@@ -28,16 +28,24 @@ public class ImageController : MonoBehaviour
         
         public Vector2Int agentDestCoord;
         public int agentSpeed;
-    }
+    } // REMEMBER TO UPDATE THE LINE BELOW
     int PixelAgentsDataStructSize = sizeof(int) * 2 + sizeof(float) * 4 + sizeof(int) * 2 + sizeof(int) * 1;
 
     PixelAgentsDataStruct[] agents;
     int numAgents;
 
     // Histogram stuff
+    struct BinData
+    {
+        float numPixInBin;
+    }
+
+    public float maxBinHeight = 300.0f; // To scale the histogram to a max height
     public GameObject[] binObjects;
+    BinData[] binData; // Data used to change the height of the histogram.
     public GameObject selector;
-    public int numBins = 256;
+    int numPixelsInImage; // Number of pixels in the image
+    int numBins = 256;
 
     // Start is called before the first frame update
     void Start()
@@ -92,11 +100,26 @@ public class ImageController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+
+
+
+
+
+
+
+
+
+
+
+
+        // ------------------------OLD SHIT----------------------------
         
         //PrintImageWithShader("ImageKernel", ref pixelMoveShader, ref pixelMoveBuffer, ref agents, "pixelMoveBuffer", "ResultTexture", ref renderTexture, ref image, 3);
-        ClearImageWithShader("ClearImageKernel", ref clearImageShader, "ResultTexture", ref renderTexture, ref image);
-        PrintImageWithShader("ImageKernel", ref pixelMoveShader, ref pixelMoveBuffer, ref agents, "pixelMoveBuffer", "ResultTexture", ref renderTexture, ref image, 1);
+        //ClearImageWithShader("ClearImageKernel", ref clearImageShader, "ResultTexture", ref renderTexture, ref image);
+        //PrintImageWithShader("ImageKernel", ref pixelMoveShader, ref pixelMoveBuffer, ref agents, "pixelMoveBuffer", "ResultTexture", ref renderTexture, ref image, 1);
 
+
+        /*
         Vector3 mousePos = Input.mousePosition;
         for (int i = 0; i < agents.Length; i++)
         {
@@ -123,6 +146,7 @@ public class ImageController : MonoBehaviour
                 agents[i].agentPosition.y = UnityEngine.Random.Range(0, Screen.height);
             }
         }
+        */
         
     }
 
@@ -200,6 +224,8 @@ public class ImageController : MonoBehaviour
         }
 
     }
+
+    
 
     void PrintImageWithShader(string kernel, ref ComputeShader pixelMoveShader_, ref ComputeBuffer pixelMoveBuffer_,  ref PixelAgentsDataStruct[] agents_, string shaderRWBuffer, string shaderResultRWTexture2D, ref RenderTexture renderTexture_, ref RawImage image_, int onMove)
     {
