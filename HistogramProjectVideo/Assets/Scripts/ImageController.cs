@@ -37,7 +37,7 @@ public class ImageController : MonoBehaviour
     // Histogram stuff
     struct BinData
     {
-        float numPixInBin;
+        public int numPixInBin;
     }
 
     public float maxBinHeight = 300.0f; // To scale the histogram to a max height
@@ -68,13 +68,18 @@ public class ImageController : MonoBehaviour
 
         // Initializing the histogram stuff
         binObjects = new GameObject[numBins];
-        float histStartCoord = -700.0f;
+        binData = new BinData[256];
+        numPixelsInImage = imageTexture.width * imageTexture.height;
+        float binDims = 2.5f;
+        float histStartCoord = -binDims*128;
         for (int i = 0; i < numBins; i++)
         {
-            GameObject go = (GameObject)Instantiate(selector, new Vector3((float)histStartCoord + i * 5.5f, 0.0f, 0.0f), Quaternion.identity);
-            go.transform.localScale = new Vector3(5.5f, 5.5f, 5.5f); // Set y (eller er det z) tykkelsen til at være 0.0 da den skal ændres med histogrammet vokser
+            GameObject go = (GameObject)Instantiate(selector, new Vector3((float)histStartCoord + i * binDims, 0.0f, -45.0f), Quaternion.identity);
+            go.transform.localScale = new Vector3(binDims, 0.0f, 10.0f); // Set z Højden til at være 0.0 da den skal ændres med histogrammet vokser
             binObjects[i] = go;
         }
+        // Set the goals of each agent:
+        SetHistogramGoalToAgentsGRAY(ref agents, ref binObjects);
 
 
         /*
@@ -101,8 +106,8 @@ public class ImageController : MonoBehaviour
     void Update()
     {
 
-
-
+        
+        // Make a state machine to do the shit and zoom in on the histogram
 
 
 
@@ -115,6 +120,8 @@ public class ImageController : MonoBehaviour
         // ------------------------OLD SHIT----------------------------
         
         //PrintImageWithShader("ImageKernel", ref pixelMoveShader, ref pixelMoveBuffer, ref agents, "pixelMoveBuffer", "ResultTexture", ref renderTexture, ref image, 3);
+        
+        
         //ClearImageWithShader("ClearImageKernel", ref clearImageShader, "ResultTexture", ref renderTexture, ref image);
         //PrintImageWithShader("ImageKernel", ref pixelMoveShader, ref pixelMoveBuffer, ref agents, "pixelMoveBuffer", "ResultTexture", ref renderTexture, ref image, 1);
 
@@ -149,9 +156,19 @@ public class ImageController : MonoBehaviour
         */
         
     }
+    
+    void SetHistogramGoalToAgentsGRAY(ref PixelAgentsDataStruct[] agents_, ref GameObject[] binObjects_)
+    {
+        for (int i = 0; i < agents_.Length; i++)
+        {
+            // Gray value of agent:
+            int grayValue = Mathf.RoundToInt(agents_[i].agentColor.x * 255.0f);
 
-
-
+            // Get the world screen coordinates
+            // Set the agent goal to the screen coordinates of the binObject.
+        }
+    }
+    
     public void LoadImageColorArray(ref Texture2D imgTex, ref Color[,] imgColorArr)
     {
         int rows = imageTexture.height;
