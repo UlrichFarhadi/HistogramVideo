@@ -25,7 +25,7 @@ void ImageKernel(uint3 id : SV_DispatchThreadID)
 {
 
     float4 pixelColor = pixelMoveBuffer[id.x].agentColor;
-    float4 backgroundColor = { 25.0f / 255.0f, 35.0f / 255.0f, 51.0f / 255.0f, 255.0f / 255.0f };
+    float4 backgroundColor = { 14.0f / 255.0f, 26.0f / 255.0f, 37.0f / 255.0f, 255.0f / 255.0f };
     uint agentSpeed = pixelMoveBuffer[id.x].agentSpeed;
 
     uint2 currentPixelPosition = uint2(pixelMoveBuffer[id.x].agentPosition.x, pixelMoveBuffer[id.x].agentPosition.y);
