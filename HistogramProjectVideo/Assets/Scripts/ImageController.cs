@@ -28,8 +28,10 @@ public class ImageController : MonoBehaviour
         
         public Vector2Int agentDestCoord;
         public int agentSpeed;
+
+        public int goalReached;
     } // REMEMBER TO UPDATE THE LINE BELOW
-    int PixelAgentsDataStructSize = sizeof(int) * 2 + sizeof(float) * 4 + sizeof(int) * 2 + sizeof(int) * 1;
+    int PixelAgentsDataStructSize = sizeof(int) * 2 + sizeof(float) * 4 + sizeof(int) * 2 + sizeof(int) * 1 + sizeof(int) * 1;
 
     PixelAgentsDataStruct[] agents;
     int numAgents;
@@ -40,6 +42,7 @@ public class ImageController : MonoBehaviour
         public int numPixInBin;
     }
 
+    public Camera cam;
     public float maxBinHeight = 300.0f; // To scale the histogram to a max height
     public GameObject[] binObjects;
     BinData[] binData; // Data used to change the height of the histogram.
@@ -63,19 +66,19 @@ public class ImageController : MonoBehaviour
 
 
 
-        InitializeAgents(0, 0, imageColorArray.GetLength(0), imageColorArray.GetLength(1), ref imageColorArray, "rgb");
+        InitializeAgents(1000, 0, imageColorArray.GetLength(0), imageColorArray.GetLength(1), ref imageColorArray, "grayscale");
         PrintImageWithShader("ImageKernel", ref pixelMoveShader, ref pixelMoveBuffer, ref agents, "pixelMoveBuffer", "ResultTexture", ref renderTexture, ref image, 0);
 
         // Initializing the histogram stuff
         binObjects = new GameObject[numBins];
-        binData = new BinData[256];
+        binData = new BinData[numBins];
         numPixelsInImage = imageTexture.width * imageTexture.height;
         float binDims = 2.5f;
         float histStartCoord = -binDims*128;
         for (int i = 0; i < numBins; i++)
         {
-            GameObject go = (GameObject)Instantiate(selector, new Vector3((float)histStartCoord + i * binDims, 0.0f, -45.0f), Quaternion.identity);
-            go.transform.localScale = new Vector3(binDims, 0.0f, 10.0f); // Set z Højden til at være 0.0 da den skal ændres med histogrammet vokser
+            GameObject go = (GameObject)Instantiate(selector, new Vector3((float)histStartCoord + i * binDims, 0.0f, -50.0f), Quaternion.identity);
+            go.transform.localScale = new Vector3(binDims, 0.0f, 1.0f); // Set z Højden til at være 0.0 da den skal ændres med histogrammet vokser
             binObjects[i] = go;
         }
         // Set the goals of each agent:
@@ -106,10 +109,54 @@ public class ImageController : MonoBehaviour
     void Update()
     {
 
-        
+
         // Make a state machine to do the shit and zoom in on the histogram
 
+        ClearImageWithShader("ClearImageKernel", ref clearImageShader, "ResultTexture", ref renderTexture, ref image);
+        PrintImageWithShader("ImageKernel", ref pixelMoveShader, ref pixelMoveBuffer, ref agents, "pixelMoveBuffer", "ResultTexture", ref renderTexture, ref image, 1);
 
+        int biggestBin = 0;
+        for (int i = 0; i < agents.Length; i++)
+        {
+            agents[i].agentSpeed = UnityEngine.Random.Range(1, 4);
+
+
+            float hypDist = Mathf.Sqrt(Mathf.Pow((agents[i].agentDestCoord.x - agents[i].agentPosition.x), 2) + Mathf.Pow((agents[i].agentDestCoord.y - agents[i].agentPosition.y), 2));
+            if (hypDist <= 10.0f)
+            {
+                agents[i].goalReached = 1;
+                int grayValue = Mathf.RoundToInt(agents[i].agentColor.x * 255.0f);
+                binData[grayValue].numPixInBin++;
+
+            }
+            else
+            {
+                agents[i].goalReached = 0;
+            }
+
+           
+        }
+        
+        for (int i = 0; i < numBins; i++)
+        {
+            if (binData[i].numPixInBin > biggestBin)
+            {
+                biggestBin = binData[i].numPixInBin;
+            }
+        }
+        
+        for (int i = 0; i < numBins; i++)
+        {
+            if (binData[i].numPixInBin == 0)
+            {
+                continue;
+            }
+            float scalar = (float)binData[i].numPixInBin / (float)biggestBin; // Number from 0 to 1
+            Vector3 addVec = new Vector3(2.5f, 0.0f, scalar*maxBinHeight); // Change 2.5 to a global variable
+            binObjects[i].transform.localScale = addVec;
+        }
+        
+        
 
 
 
@@ -118,14 +165,17 @@ public class ImageController : MonoBehaviour
 
 
         // ------------------------OLD SHIT----------------------------
-        
+
         //PrintImageWithShader("ImageKernel", ref pixelMoveShader, ref pixelMoveBuffer, ref agents, "pixelMoveBuffer", "ResultTexture", ref renderTexture, ref image, 3);
-        
-        
+
+
         //ClearImageWithShader("ClearImageKernel", ref clearImageShader, "ResultTexture", ref renderTexture, ref image);
         //PrintImageWithShader("ImageKernel", ref pixelMoveShader, ref pixelMoveBuffer, ref agents, "pixelMoveBuffer", "ResultTexture", ref renderTexture, ref image, 1);
 
-
+        //for (int i = 0; i < agents.Length; i++)
+        //{
+        //    agents[i].agentSpeed = UnityEngine.Random.Range(1, 4);
+        //}
         /*
         Vector3 mousePos = Input.mousePosition;
         for (int i = 0; i < agents.Length; i++)
@@ -154,7 +204,7 @@ public class ImageController : MonoBehaviour
             }
         }
         */
-        
+
     }
     
     void SetHistogramGoalToAgentsGRAY(ref PixelAgentsDataStruct[] agents_, ref GameObject[] binObjects_)
@@ -164,8 +214,10 @@ public class ImageController : MonoBehaviour
             // Gray value of agent:
             int grayValue = Mathf.RoundToInt(agents_[i].agentColor.x * 255.0f);
 
-            // Get the world screen coordinates
-            // Set the agent goal to the screen coordinates of the binObject.
+            Vector3 binScreenPos = cam.WorldToScreenPoint(binObjects_[grayValue].transform.position);
+            agents_[i].agentDestCoord.x = (int)binScreenPos.x;
+            agents_[i].agentDestCoord.y = (int)binScreenPos.y;
+
         }
     }
     
@@ -231,7 +283,7 @@ public class ImageController : MonoBehaviour
                     agentPosition = new Vector2Int(col, rows - row - 1), // If more needs to be added, add a comma after each line except the last line
                     agentColor = pixelColor,
                     agentDestCoord = new Vector2Int(800, 800),
-                    agentSpeed = UnityEngine.Random.Range(2, 5)
+                    agentSpeed = UnityEngine.Random.Range(1, 4)
                     
                 };
 

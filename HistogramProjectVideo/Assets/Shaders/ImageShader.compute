@@ -14,6 +14,7 @@ struct PixelAgentsDataStruct
     int2 agentDestCoord;
     int agentSpeed;
     
+    int goalReached;
 };
 
 uint onMove;
@@ -23,6 +24,10 @@ RWStructuredBuffer<PixelAgentsDataStruct> pixelMoveBuffer;
 [numthreads(8,1,1)]
 void ImageKernel(uint3 id : SV_DispatchThreadID)
 {
+    if (pixelMoveBuffer[id.x].goalReached == 1)
+    {
+        return;
+    }
 
     float4 pixelColor = pixelMoveBuffer[id.x].agentColor;
     float4 backgroundColor = { 14.0f / 255.0f, 26.0f / 255.0f, 37.0f / 255.0f, 255.0f / 255.0f };
