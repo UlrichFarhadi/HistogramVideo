@@ -49,8 +49,12 @@ public class ImageController : MonoBehaviour
     public GameObject selector;
     int numPixelsInImage; // Number of pixels in the image
     int numBins = 256;
+    public float binDims = 2.5f;
+    public float histStartHeight = -50.0f;
 
     // Start is called before the first frame update
+
+    int state = 0;
     void Start()
     {
         //StartCoroutine(GenerateGrid());
@@ -66,19 +70,20 @@ public class ImageController : MonoBehaviour
 
 
 
-        InitializeAgents(1000, 0, imageColorArray.GetLength(0), imageColorArray.GetLength(1), ref imageColorArray, "grayscale");
+        InitializeAgents(800, -50, imageColorArray.GetLength(0), imageColorArray.GetLength(1), ref imageColorArray, "grayscale");
         PrintImageWithShader("ImageKernel", ref pixelMoveShader, ref pixelMoveBuffer, ref agents, "pixelMoveBuffer", "ResultTexture", ref renderTexture, ref image, 0);
 
         // Initializing the histogram stuff
         binObjects = new GameObject[numBins];
         binData = new BinData[numBins];
         numPixelsInImage = imageTexture.width * imageTexture.height;
-        float binDims = 2.5f;
         float histStartCoord = -binDims*128;
         for (int i = 0; i < numBins; i++)
         {
-            GameObject go = (GameObject)Instantiate(selector, new Vector3((float)histStartCoord + i * binDims, 0.0f, -50.0f), Quaternion.identity);
+            GameObject go = (GameObject)Instantiate(selector, new Vector3((float)histStartCoord + i * binDims, 0.0f, histStartHeight), Quaternion.identity);
             go.transform.localScale = new Vector3(binDims, 0.0f, 1.0f); // Set z Højden til at være 0.0 da den skal ændres med histogrammet vokser
+            Vector4 grayColor = new Vector4((float)i/255.0f, (float)i / 255.0f, (float)i / 255.0f, 1.0f);
+            go.GetComponent<Renderer>().material.SetColor("_Color", grayColor);
             binObjects[i] = go;
         }
         // Set the goals of each agent:
@@ -101,6 +106,7 @@ public class ImageController : MonoBehaviour
         */
 
         //StartCoroutine(GenerateGrid());
+
         Application.targetFrameRate = 60;
         
     }
@@ -108,56 +114,32 @@ public class ImageController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-
+        if (Input.GetKeyDown("a"))
+        {
+            state++;
+        }
 
         // Make a state machine to do the shit and zoom in on the histogram
 
-        ClearImageWithShader("ClearImageKernel", ref clearImageShader, "ResultTexture", ref renderTexture, ref image);
-        PrintImageWithShader("ImageKernel", ref pixelMoveShader, ref pixelMoveBuffer, ref agents, "pixelMoveBuffer", "ResultTexture", ref renderTexture, ref image, 1);
-
-        int biggestBin = 0;
-        for (int i = 0; i < agents.Length; i++)
+        switch (state)
         {
-            agents[i].agentSpeed = UnityEngine.Random.Range(1, 4);
+            case 1:
+                AnimateHistogram();
+                break;
 
+            case 3:
+                float camSpeed = 150.0f;
+                float step = camSpeed * Time.deltaTime;
+                Vector3 camTargetPosition = new Vector3(0.0f, 687f, 123f);
+                cam.transform.position = Vector3.MoveTowards(cam.transform.position, camTargetPosition, step);
+                break;
 
-            float hypDist = Mathf.Sqrt(Mathf.Pow((agents[i].agentDestCoord.x - agents[i].agentPosition.x), 2) + Mathf.Pow((agents[i].agentDestCoord.y - agents[i].agentPosition.y), 2));
-            if (hypDist <= 10.0f)
-            {
-                agents[i].goalReached = 1;
-                int grayValue = Mathf.RoundToInt(agents[i].agentColor.x * 255.0f);
-                binData[grayValue].numPixInBin++;
-
-            }
-            else
-            {
-                agents[i].goalReached = 0;
-            }
-
-           
-        }
-        
-        for (int i = 0; i < numBins; i++)
-        {
-            if (binData[i].numPixInBin > biggestBin)
-            {
-                biggestBin = binData[i].numPixInBin;
-            }
-        }
-        
-        for (int i = 0; i < numBins; i++)
-        {
-            if (binData[i].numPixInBin == 0)
-            {
-                continue;
-            }
-            float scalar = (float)binData[i].numPixInBin / (float)biggestBin; // Number from 0 to 1
-            Vector3 addVec = new Vector3(2.5f, 0.0f, scalar*maxBinHeight); // Change 2.5 to a global variable
-            binObjects[i].transform.localScale = addVec;
+            default:
+                break;
         }
         
         
-
+       
 
 
 
@@ -205,6 +187,55 @@ public class ImageController : MonoBehaviour
         }
         */
 
+    }
+
+    void AnimateHistogram()
+    {
+        ClearImageWithShader("ClearImageKernel", ref clearImageShader, "ResultTexture", ref renderTexture, ref image);
+        PrintImageWithShader("ImageKernel", ref pixelMoveShader, ref pixelMoveBuffer, ref agents, "pixelMoveBuffer", "ResultTexture", ref renderTexture, ref image, 1);
+
+        int biggestBin = 0;
+        for (int i = 0; i < agents.Length; i++)
+        {
+            agents[i].agentSpeed = UnityEngine.Random.Range(1, 3);
+
+
+            float hypDist = Mathf.Sqrt(Mathf.Pow((agents[i].agentDestCoord.x - agents[i].agentPosition.x), 2) + Mathf.Pow((agents[i].agentDestCoord.y - agents[i].agentPosition.y), 2));
+            if (hypDist <= 10.0f)
+            {
+                agents[i].goalReached = 1;
+                int grayValue = Mathf.RoundToInt(agents[i].agentColor.x * 255.0f);
+                binData[grayValue].numPixInBin++;
+
+            }
+            else
+            {
+                agents[i].goalReached = 0;
+            }
+
+
+        }
+
+        for (int i = 0; i < numBins; i++) // Calculate the biggest bin
+            // SHOULD BE DONE BEFORE THIS UPDATE ACTUALLY, WE CAN JUST CALCULATE THE HISTOGRAM BEFOREHAND
+            // THIS MAKES THE ANIMATION MORE SMOOTH AND INDEPENDANT!!!
+        {
+            if (binData[i].numPixInBin > biggestBin)
+            {
+                biggestBin = binData[i].numPixInBin;
+            }
+        }
+
+        for (int i = 0; i < numBins; i++)
+        {
+            if (binData[i].numPixInBin == 0)
+            {
+                continue;
+            }
+            float scalar = (float)binData[i].numPixInBin / (float)biggestBin; // Number from 0 to 1
+            binObjects[i].transform.position = new Vector3(binObjects[i].transform.position.x, binObjects[i].transform.position.y, histStartHeight + (scalar * maxBinHeight) / 2.0f);
+            binObjects[i].transform.localScale = new Vector3(binObjects[i].transform.localScale.x, binObjects[i].transform.localScale.y, scalar * maxBinHeight);
+        }
     }
     
     void SetHistogramGoalToAgentsGRAY(ref PixelAgentsDataStruct[] agents_, ref GameObject[] binObjects_)
