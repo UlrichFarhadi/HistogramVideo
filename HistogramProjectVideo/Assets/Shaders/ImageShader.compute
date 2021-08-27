@@ -12,7 +12,7 @@ struct PixelAgentsDataStruct
     float4 agentColor;
 
     int2 agentDestCoord;
-    int agentSpeed;
+    float agentSpeed;
     
     int goalReached;
 };
@@ -40,7 +40,9 @@ void ImageKernel(uint3 id : SV_DispatchThreadID)
     float sqrtBtm = sqrt(xDist * xDist + yDist * yDist);
 
     //uint2 newPixelPosition = uint2(currentPixelPosition.x + round(((100.0f * xDist) / (abs(xDist) + abs(yDist))) / 100.0f) * agentSpeed, currentPixelPosition.y + round(((100.0f * yDist) / (abs(xDist) + abs(yDist))) / 100.0f) * agentSpeed);
+    
     uint2 newPixelPosition = uint2(pixelMoveBuffer[id.x].agentPosition.x + round((xDist / abs(sqrtBtm)) * agentSpeed), pixelMoveBuffer[id.x].agentPosition.y + round((yDist / abs(sqrtBtm)) * agentSpeed));
+    //uint2 newPixelPosition = lerp(pixelMoveBuffer[id.x].agentPosition, pixelMoveBuffer[id.x].agentDestCoord, 0.01);
 
     // Quick fix for the edge problem when dividing it becomes 0, here i just make it stay at the mouse position
     if ((xDist == 0) && (yDist == 0))

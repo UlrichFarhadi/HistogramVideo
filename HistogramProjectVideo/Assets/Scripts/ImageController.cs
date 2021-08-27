@@ -20,18 +20,18 @@ public class ImageController : MonoBehaviour
     public ComputeShader clearImageShader;
 
     // Data for the PixelAgents Compute Buffer
-    public float pixelSpeed;
+    public float pixelSpeed = 1.0f;
     struct PixelAgentsDataStruct
     {
         public Vector2Int agentPosition;
         public Vector4 agentColor;
         
         public Vector2Int agentDestCoord;
-        public int agentSpeed;
+        public float agentSpeed;
 
         public int goalReached;
     } // REMEMBER TO UPDATE THE LINE BELOW
-    int PixelAgentsDataStructSize = sizeof(int) * 2 + sizeof(float) * 4 + sizeof(int) * 2 + sizeof(int) * 1 + sizeof(int) * 1;
+    int PixelAgentsDataStructSize = sizeof(int) * 2 + sizeof(float) * 4 + sizeof(int) * 2 + sizeof(float) * 1 + sizeof(int) * 1;
 
     PixelAgentsDataStruct[] agents;
     int numAgents;
@@ -51,8 +51,11 @@ public class ImageController : MonoBehaviour
     int numBins = 256;
     public float binDims = 2.5f;
     public float histStartHeight = -50.0f;
+    int biggestBin = 0;
 
     // Start is called before the first frame update
+
+    public AnimationCurve cameraCurve;
 
     int state = 0;
     void Start()
@@ -78,16 +81,31 @@ public class ImageController : MonoBehaviour
         binData = new BinData[numBins];
         numPixelsInImage = imageTexture.width * imageTexture.height;
         float histStartCoord = -binDims*128;
+        float binStartSize = 2.0f;
         for (int i = 0; i < numBins; i++)
         {
-            GameObject go = (GameObject)Instantiate(selector, new Vector3((float)histStartCoord + i * binDims, 0.0f, histStartHeight), Quaternion.identity);
-            go.transform.localScale = new Vector3(binDims, 0.0f, 1.0f); // Set z Højden til at være 0.0 da den skal ændres med histogrammet vokser
+            GameObject go = (GameObject)Instantiate(selector, new Vector3((float)histStartCoord + i * binDims, 0.0f, histStartHeight + (binStartSize/2.0f)), Quaternion.identity);
+            go.transform.localScale = new Vector3(binDims, 0.0f, binStartSize); // Set z Højden til at være 0.0 da den skal ændres med histogrammet vokser
             Vector4 grayColor = new Vector4((float)i/255.0f, (float)i / 255.0f, (float)i / 255.0f, 1.0f);
             go.GetComponent<Renderer>().material.SetColor("_Color", grayColor);
             binObjects[i] = go;
         }
         // Set the goals of each agent:
         SetHistogramGoalToAgentsGRAY(ref agents, ref binObjects);
+        BinData[] testBins = new BinData[numBins];
+        // Find the biggest bin
+        for (int i = 0; i < agents.Length; i++)
+        {
+            int grayValue = Mathf.RoundToInt(agents[i].agentColor.x * 255.0f);
+            testBins[grayValue].numPixInBin++;
+        }
+        for (int i = 0; i < testBins.Length; i++)
+        {
+            if (testBins[i].numPixInBin >= biggestBin)
+            {
+                biggestBin = testBins[i].numPixInBin;
+            }
+        }
 
 
         /*
@@ -127,11 +145,11 @@ public class ImageController : MonoBehaviour
                 AnimateHistogram();
                 break;
 
-            case 3:
-                float camSpeed = 150.0f;
-                float step = camSpeed * Time.deltaTime;
+            case 2:
+                // Use Lerp here!
+                float camSpeed = 2.0f;
                 Vector3 camTargetPosition = new Vector3(0.0f, 687f, 123f);
-                cam.transform.position = Vector3.MoveTowards(cam.transform.position, camTargetPosition, step);
+                cam.transform.position = Vector3.Lerp(cam.transform.position, camTargetPosition, camSpeed * Time.deltaTime);
                 break;
 
             default:
@@ -194,9 +212,15 @@ public class ImageController : MonoBehaviour
         ClearImageWithShader("ClearImageKernel", ref clearImageShader, "ResultTexture", ref renderTexture, ref image);
         PrintImageWithShader("ImageKernel", ref pixelMoveShader, ref pixelMoveBuffer, ref agents, "pixelMoveBuffer", "ResultTexture", ref renderTexture, ref image, 1);
 
-        int biggestBin = 0;
         for (int i = 0; i < agents.Length; i++)
         {
+            if (agents[i].goalReached == 1)
+            {
+                continue;
+            }
+
+            // Set agent speed
+            //agents[i].agentSpeed = pixelSpeed * Time.deltaTime;
             agents[i].agentSpeed = UnityEngine.Random.Range(1, 3);
 
 
@@ -215,7 +239,7 @@ public class ImageController : MonoBehaviour
 
 
         }
-
+        /*
         for (int i = 0; i < numBins; i++) // Calculate the biggest bin
             // SHOULD BE DONE BEFORE THIS UPDATE ACTUALLY, WE CAN JUST CALCULATE THE HISTOGRAM BEFOREHAND
             // THIS MAKES THE ANIMATION MORE SMOOTH AND INDEPENDANT!!!
@@ -225,6 +249,7 @@ public class ImageController : MonoBehaviour
                 biggestBin = binData[i].numPixInBin;
             }
         }
+        */
 
         for (int i = 0; i < numBins; i++)
         {

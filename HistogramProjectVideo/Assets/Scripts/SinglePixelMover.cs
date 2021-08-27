@@ -12,7 +12,7 @@ public class SinglePixelMover : MonoBehaviour
     public GameObject pixelB;
     public GameObject canvasUI;
 
-    private float translateSpeed = 300.0f;
+    private float translateSpeed = 2.0f;
 
     private int state = 0;
 
@@ -52,15 +52,15 @@ public class SinglePixelMover : MonoBehaviour
         }
         if (state >= 1)
         {
-            pixelR.transform.position = Vector3.MoveTowards(pixelR.transform.position, rDestCoord, translateSpeed * Time.deltaTime);
+            pixelR.transform.position = Vector3.Lerp(pixelR.transform.position, rDestCoord, translateSpeed * Time.deltaTime);
         }
         if (state >= 2)
         {
-            pixelG.transform.position = Vector3.MoveTowards(pixelG.transform.position, gDestCoord, translateSpeed * Time.deltaTime);
+            pixelG.transform.position = Vector3.Lerp(pixelG.transform.position, gDestCoord, translateSpeed * Time.deltaTime);
         }
         if (state >= 3)
         {
-            pixelB.transform.position = Vector3.MoveTowards(pixelB.transform.position, bDestCoord, translateSpeed * Time.deltaTime);
+            pixelB.transform.position = Vector3.Lerp(pixelB.transform.position, bDestCoord, translateSpeed * Time.deltaTime);
         }
 
 
