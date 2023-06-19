@@ -5,7 +5,7 @@ Simulated using High-Level Shader Language (Hlsl) utilizing Unity's Compute shad
 
 The video created is a contribution to the Summer of Math Exposition 2 (SOME2) hosted by Grant Sanderson [(3Blue1Brown)](https://www.3blue1brown.com/)
 
-[SOME2 Contribution](https://www.youtube.com/watch?v=EcACY1gmaic)
+[![HistogramVideo](https://img.youtube.com/vi/EcACY1gmaic/0.jpg)](https://www.youtube.com/watch?v=EcACY1gmaic)
 
 ## Video Overview
 
