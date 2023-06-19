@@ -25,7 +25,7 @@ To watch the video, please visit the following link: [HistogramVideo on YouTube]
 
 ## License
 
-The code and assets in this repository are licensed under the [MIT License](LICENSE). Please note that this license only covers the code and assets and does not extend to the video itself. If you want to use the video, please credit me properly according to fair use and contact me on GitHub.
+The code and assets in this repository are licensed under the [MIT License](LICENSE). Please note that this license only covers the code and assets and does not extend to the video itself. If you want to use the video, please credit me properly according to fair use and contact me.
 
 ## Acknowledgments
 
