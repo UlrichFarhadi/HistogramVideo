@@ -35,6 +35,4 @@ I would like to express my gratitude to Grant Sanderson and the 3Blue1Brown comm
 
 If you have any questions or inquiries regarding this project, please feel free to contact me:
 
-Ulrich Farhadi
-
-Ulrichfarhadi@hotmail.com
+Ulrich Farhadi - Ulrichfarhadi@hotmail.com
