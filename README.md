@@ -1,9 +1,9 @@
 # HistogramVideo
 
-Math simulation video regarding histograms and the histogram equalization algorithm. Created for educational purposes for an audience with no or very little knowledge regarding Computer Vision.
+Math simulation video about histograms and the histogram equalization algorithm. Created for educational purposes for an audience with no or very little knowledge regarding Computer Vision.
 Simulated using High-Level Shader Language (HLSL) utilizing Unity's Compute shaders, as well as animation and programming tools.
 
-This video was created specifically for the Summer of Math Exposition 2 (SOME2) hosted by Grant Sanderson [(3Blue1Brown)](https://www.3blue1brown.com/).
+This video was created specifically for the Summer of Math Exposition 2 (SoME2) hosted by Grant Sanderson [(3Blue1Brown)](https://www.3blue1brown.com/).
 
 ## Video Overview
 
