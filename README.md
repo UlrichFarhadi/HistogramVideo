@@ -13,7 +13,7 @@ The video showcases the concepts of histograms and the histogram equalization al
 
 The simulation was developed using the following technologies:
 
-- High-Level Shader Language (Hlsl): The video utilizes Hlsl to implement the visual effects and computations necessary for the simulation.
+- High-Level Shader Language (HLSL): The video utilizes HLSL to implement the visual effects and computations necessary for the simulation.
 - Unity's Compute Shaders: Compute shaders in Unity were employed to optimize and parallelize the moving textures in the simulations, enhancing the performance.
 - Animation and Programming Tools: Various animation and programming tools available in Unity were utilized to create the visual elements and control the simulation.
 - The video was edited using DaVinci Resolve.
